@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VMT-Map</title>
+    <script src="https://vmt-dev.ddns.net/widget/bundle.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js" integrity="sha512-E8QSvWZ0eCLGk4km3hxSsNmGWbLtSCSUcewDQPQWZF6pEU8GlT8a5fF32wOl1i8ftdMhssTrF/OhyGWwonTcXA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+</head>
+<body>
+    
+    <div id="venue-mapping-tool" style="height: 100vh;"></div>
+
+    <script>
+        const stringToBoolean = (stringValue) => {
+            switch(stringValue?.toLowerCase()?.trim()){
+                case "true": 
+                case "yes": 
+                case "1": 
+                return true;
+
+                case "false": 
+                case "no": 
+                case "0": 
+                case null: 
+                case undefined:
+                return false;
+
+                default: 
+                return JSON.parse(stringValue);
+            }
+        }
+
+        function generateToken() {
+            var urlParams = new URLSearchParams(window.location.search);
+
+            var tokenHash;
+
+            const jsonObject = {
+                eventId: urlParams.get('eventId'),
+                memberId: urlParams.get('memberId'),
+                mode: "picker",
+                allowedHolds: [],
+                appViewOnly: true,
+                allowIconsEdit: false,
+                allowOrphanSale: false,
+                featureFlags: {
+                    wholeTableBooking: true,
+                    orphanSeats: true,
+                },
+            };
+
+            const jsonString = JSON.stringify(jsonObject);
+            tokenHash = window.btoa(jsonString);
+            const hash = CryptoJS.HmacSHA256(tokenHash, 'b34c1b1fadb75d5517e30a1a9a81eb72');
+            const signature = tokenHash + "." + hash.toString(CryptoJS.enc.Hex);
+            
+            let vmtWidget = VMTWidget.default;
+
+            var request = {
+                memberId: urlParams.get('memberId'),
+                eventId: urlParams.get('eventId'),
+                venueId: urlParams.get('venueId'),
+                mode: 'picker',
+                token: signature,
+                currency: urlParams.get('currency') != null ? urlParams.get('currency') : "USD",
+                hideCloseBtn: urlParams.get('hideCloseBtn') != null ? stringToBoolean(urlParams.get('hideCloseBtn')) : true,
+                hideExpandBtn: urlParams.get('hideExpandBtn') != null ? stringToBoolean(urlParams.get('hideExpandBtn')) : true
+            }
+
+            vmtWidget.launch({
+                containerId: 'venue-mapping-tool',
+                frontPoint: 'https://vmt-dev.ddns.net/front',
+                memberId: request.memberId,
+                eventId: request.eventId,
+                venueId: request.venueId,
+                mode: request.mode,
+                token: request.token,
+                apiUrl: "https://vmt-dev.ddns.net//api",
+                closeWidgetOnCheckout: true,
+                currency: request.currency,
+                featureFlags: {},
+                localization: "tixygo",
+                priceFormat: "$0,0.00",
+                hideCloseBtn: request.hideCloseBtn,
+                hideExpandBtn: request.hideExpandBtn,
+                allowIconsEdit: false,
+                tokenVersion: "new"
+            });
+    
+            vmtWidget.method('onTicketsCheckout', function (xSignature, tickets) {
+                var newTickets = {
+                    signature: xSignature,
+                    tickets
+                }
+                window.sessionStorage.setItem('tickets', JSON.stringify(newTickets));
+                addEventListener("sendInformation", () => {
+                    postMessage("init", "*", JSON.stringify(newTickets));
+                });
+            });
+    
+            vmtWidget.onClose(() => {
+                console.log("Método onClose al cerrar los tickets.");
+            });
+        }
+
+        generateToken();
+    </script>
+</body>
+</html>
