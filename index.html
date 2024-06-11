@@ -103,7 +103,8 @@
             vmtWidget.method('onTicketsCheckout', function (xSignature, tickets) {
                 var newTickets = {
                     signature: xSignature,
-                    tickets
+                    tickets,
+                    token: request.token
                 }
 
                 port.postMessage(JSON.stringify(newTickets));
