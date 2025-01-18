@@ -106,12 +106,10 @@
                     signature: xSignature,
                     tickets,
                     token: request.token
-                }
+                };
 
-                window.postMessage(JSON.stringify(newTickets), "*");
-                // port.postMessage(JSON.stringify(newTickets), "*");
-                
-
+                // Aquí se usa el canal JavaScript que Flutter escuchará
+                window.PostMessageChannel.postMessage(JSON.stringify(newTickets));
             });
     
             vmtWidget.onClose(() => {
