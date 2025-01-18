@@ -108,8 +108,8 @@
                     token: request.token
                 }
 
-                // window.postMessage(JSON.stringify(newTickets), "*");
-                port.postMessage(JSON.stringify(newTickets), "*");
+                window.postMessage(JSON.stringify(newTickets), "*");
+                // port.postMessage(JSON.stringify(newTickets), "*");
                 
 
             });
