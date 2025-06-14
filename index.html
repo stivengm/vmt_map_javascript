@@ -62,10 +62,16 @@
                 },
             };
 
+            console.log("JSON que se firma:", JSON.stringify(jsonObject, null, 2));
             const jsonString = JSON.stringify(jsonObject);
+            
             tokenHash = window.btoa(jsonString);
+            console.log("Token base64:", tokenHash);
+            console.log("Token decodificado:", atob(tokenHash));
+            
             const hash = CryptoJS.HmacSHA256(tokenHash, 'b34c1b1fadb75d5517e30a1a9a81eb72');
             const signature = tokenHash + "." + hash.toString(CryptoJS.enc.Hex);
+            console.log("Signature final:", signature);
             
             let vmtWidget = VMTWidget.default;
 
@@ -86,7 +92,7 @@
                 memberId: request.memberId,
                 eventId: request.eventId,
                 venueId: request.venueId,
-                mode: request.mode,
+                mode: "picker",
                 token: request.token,
                 apiUrl: "https://tixygo-seats.com//api",
                 closeWidgetOnCheckout: true,
